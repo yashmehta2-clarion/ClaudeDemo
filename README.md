@@ -34,7 +34,7 @@ src/UserManagement.Web/          ASP.NET Core MVC app
   wwwroot/lib/                   AdminLTE, Bootstrap, Bootstrap Icons, jQuery validation (vendored, no CDN)
 tests/UserManagement.Tests/      End-to-end integration tests (in-memory database)
 database/CreateDatabase.sql      Idempotent SQL script, if you'd rather create the schema by hand
-run-chrome.ps1 / run-chrome.sh   Build, run and open the site in Google Chrome
+run-chrome.cmd / .ps1 / .sh     Build, run and open the site in Google Chrome
 ```
 
 ### Prerequisites
@@ -73,10 +73,11 @@ If the database has no admin, one is created on startup from the `SeedAdmin` set
 
 ### Build and run in Google Chrome
 
-**Windows (PowerShell):**
+**Windows:** double-click `run-chrome.cmd` in the repository folder, or run it from a terminal opened in that folder:
 ```bash
-powershell -ExecutionPolicy Bypass -File .\run-chrome.ps1
+.\run-chrome.cmd
 ```
+(Equivalent PowerShell command, typed as one line including the leading `powershell`: `powershell -ExecutionPolicy Bypass -File .\run-chrome.ps1`)
 
 **macOS / Linux:**
 ```bash
