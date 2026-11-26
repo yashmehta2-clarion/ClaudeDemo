@@ -1,0 +1,10 @@
+@{
+    ViewData["Title"] = "Access denied";
+}
+<div class="card card-outline card-danger">
+    <div class="card-body">
+        <h4 class="text-danger"><i class="bi bi-shield-lock-fill"></i> Access denied</h4>
+        <p class="mb-3">You do not have permission to perform this action. Only administrators can create, edit or delete users.</p>
+        <a asp-controller="Users" asp-action="Index" class="btn btn-primary"><i class="bi bi-arrow-left"></i> Back to user list</a>
+    </div>
+</div>

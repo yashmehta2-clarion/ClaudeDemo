@@ -1,0 +1,199 @@
+@model UserListViewModel
+@{
+    ViewData["Title"] = "User List";
+    var q = Model.Query;
+
+    object RouteFor(string? sortBy = null, string? sortDir = null, int? page = null, int? pageSize = null) => new
+    {
+        search = q.Search,
+        role = Model.IsAdmin ? q.Role : null,
+        sortBy = sortBy ?? q.SortBy,
+        sortDir = sortDir ?? q.SortDir,
+        page = page ?? q.Page,
+        pageSize = pageSize ?? q.PageSize
+    };
+
+    // Clicking a header sorts by it ascending; clicking it again toggles direction.
+    string SortUrl(string column) =>
+        Url.Action("Index", RouteFor(column, q.SortBy == column && !q.Descending ? "desc" : "asc", 1))!;
+
+    string SortIcon(string column) =>
+        q.SortBy != column ? "bi-arrow-down-up text-body-tertiary"
+        : q.Descending ? "bi-sort-down" : "bi-sort-up";
+
+    string AriaSort(string column) =>
+        q.SortBy != column ? "none" : q.Descending ? "descending" : "ascending";
+
+    var currentUrl = Context.Request.Path + Context.Request.QueryString;
+    var first = Model.TotalCount == 0 ? 0 : (q.Page - 1) * q.PageSize + 1;
+    var last = Math.Min(q.Page * q.PageSize, Model.TotalCount);
+}
+
+<div class="card card-primary card-outline mb-4">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="bi bi-people-fill me-1"></i>
+            @(Model.IsAdmin ? "All users" : "Users")
+            <span class="badge text-bg-secondary ms-1">@Model.TotalCount</span>
+        </h3>
+        @if (Model.IsAdmin)
+        {
+            <div class="card-tools">
+                <a asp-action="Create" class="btn btn-primary btn-sm"><i class="bi bi-person-plus-fill"></i> Create user</a>
+            </div>
+        }
+    </div>
+
+    <div class="card-body">
+        @if (!Model.IsAdmin)
+        {
+            <div class="callout callout-info mb-3 py-2">
+                <i class="bi bi-info-circle"></i> You are signed in as a normal user, so only users with the <strong>User</strong> role are listed.
+            </div>
+        }
+
+        <!-- Filter bar -->
+        <form method="get" asp-action="Index" class="row g-2 align-items-end mb-3" role="search">
+            <input type="hidden" name="sortBy" value="@q.SortBy" />
+            <input type="hidden" name="sortDir" value="@q.SortDir" />
+            <input type="hidden" name="pageSize" value="@q.PageSize" />
+            <div class="col-md">
+                <label for="search" class="form-label small mb-1">Search</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input id="search" name="search" value="@q.Search" class="form-control" placeholder="First name, last name or email" maxlength="100" />
+                </div>
+            </div>
+            @if (Model.IsAdmin)
+            {
+                <div class="col-md-3">
+                    <label for="role" class="form-label small mb-1">Role</label>
+                    <select id="role" name="role" class="form-select">
+                        <option value="">All roles</option>
+                        @foreach (var r in Enum.GetValues<UserRole>())
+                        {
+                            <option value="@r" selected="@(q.Role == r)">@r</option>
+                        }
+                    </select>
+                </div>
+            }
+            <div class="col-md-auto">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-funnel-fill"></i> Filter</button>
+                <a asp-action="Index" class="btn btn-outline-secondary">Clear</a>
+            </div>
+        </form>
+
+        <!-- Grid -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover align-middle mb-0" id="usersTable">
+                <thead class="table-light">
+                <tr>
+                    <th scope="col" style="width:4rem">#</th>
+                    <th scope="col" aria-sort="@AriaSort(UserSortColumns.FirstName)"><a class="sort-link" href="@SortUrl(UserSortColumns.FirstName)">First Name <i class="bi @SortIcon(UserSortColumns.FirstName)"></i></a></th>
+                    <th scope="col" aria-sort="@AriaSort(UserSortColumns.LastName)"><a class="sort-link" href="@SortUrl(UserSortColumns.LastName)">Last Name <i class="bi @SortIcon(UserSortColumns.LastName)"></i></a></th>
+                    <th scope="col" aria-sort="@AriaSort(UserSortColumns.Email)"><a class="sort-link" href="@SortUrl(UserSortColumns.Email)">Email <i class="bi @SortIcon(UserSortColumns.Email)"></i></a></th>
+                    <th scope="col" aria-sort="@AriaSort(UserSortColumns.Role)"><a class="sort-link" href="@SortUrl(UserSortColumns.Role)">Role <i class="bi @SortIcon(UserSortColumns.Role)"></i></a></th>
+                    <th scope="col" aria-sort="@AriaSort(UserSortColumns.Created)"><a class="sort-link" href="@SortUrl(UserSortColumns.Created)">Created <i class="bi @SortIcon(UserSortColumns.Created)"></i></a></th>
+                    @if (Model.IsAdmin)
+                    {
+                        <th scope="col" class="text-end" style="width:10rem">Actions</th>
+                    }
+                </tr>
+                </thead>
+                <tbody>
+                @if (Model.Users.Count == 0)
+                {
+                    <tr><td colspan="@(Model.IsAdmin ? 7 : 6)" class="text-center text-secondary py-4">No users match your filter.</td></tr>
+                }
+                @for (var i = 0; i < Model.Users.Count; i++)
+                {
+                    var u = Model.Users[i];
+                    var isMe = u.Id == Model.CurrentUserId;
+                    <tr>
+                        <td>@(first + i)</td>
+                        <td>@u.FirstName @if (isMe) { <span class="badge text-bg-info ms-1">You</span> }</td>
+                        <td>@u.LastName</td>
+                        <td><a href="mailto:@u.Email">@u.Email</a></td>
+                        <td><span class="badge @(u.Role == UserRole.Admin ? "text-bg-danger" : "text-bg-secondary")">@u.Role</span></td>
+                        <td><span title="@u.CreatedAtUtc.ToString("u")">@u.CreatedAtUtc.ToLocalTime().ToString("dd MMM yyyy")</span></td>
+                        @if (Model.IsAdmin)
+                        {
+                            <td class="text-end text-nowrap">
+                                <a asp-action="Edit" asp-route-id="@u.Id" class="btn btn-sm btn-info" title="Edit"><i class="bi bi-pencil-square"></i> Edit</a>
+                                <button type="button" class="btn btn-sm btn-danger" title="Delete"
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                        data-user-id="@u.Id" data-user-name="@u.FullName"
+                                        disabled="@isMe">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </td>
+                        }
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Paging -->
+    <div class="card-footer clearfix d-flex flex-wrap align-items-center gap-2">
+        <div class="small text-secondary me-auto">Showing @first–@last of @Model.TotalCount</div>
+        <form method="get" asp-action="Index" class="d-flex align-items-center gap-1">
+            <input type="hidden" name="search" value="@q.Search" />
+            @if (Model.IsAdmin && q.Role is not null) { <input type="hidden" name="role" value="@q.Role" /> }
+            <input type="hidden" name="sortBy" value="@q.SortBy" />
+            <input type="hidden" name="sortDir" value="@q.SortDir" />
+            <label for="pageSize" class="small text-secondary">Rows</label>
+            <select id="pageSize" name="pageSize" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+                @foreach (var s in UserListViewModel.PageSizes)
+                {
+                    <option value="@s" selected="@(s == q.PageSize)">@s</option>
+                }
+            </select>
+        </form>
+        <nav aria-label="User list pages">
+            <ul class="pagination pagination-sm m-0">
+                <li class="page-item @(q.Page <= 1 ? "disabled" : "")"><a class="page-link" href="@Url.Action("Index", RouteFor(page: q.Page - 1))">&laquo;</a></li>
+                @for (var p = Math.Max(1, q.Page - 2); p <= Math.Min(Model.TotalPages, q.Page + 2); p++)
+                {
+                    <li class="page-item @(p == q.Page ? "active" : "")"><a class="page-link" href="@Url.Action("Index", RouteFor(page: p))">@p</a></li>
+                }
+                <li class="page-item @(q.Page >= Model.TotalPages ? "disabled" : "")"><a class="page-link" href="@Url.Action("Index", RouteFor(page: q.Page + 1))">&raquo;</a></li>
+            </ul>
+        </nav>
+    </div>
+</div>
+
+@if (Model.IsAdmin)
+{
+    <!-- Delete confirmation -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form method="post" asp-action="Delete" class="modal-content" id="deleteForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Delete user</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete <strong id="deleteUserName"></strong>? This cannot be undone.
+                    <input type="hidden" name="id" id="deleteUserId" />
+                    <input type="hidden" name="returnUrl" value="@currentUrl" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-trash-fill"></i> Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.getElementById('deleteModal')?.addEventListener('show.bs.modal', e => {
+            const btn = e.relatedTarget;
+            document.getElementById('deleteUserId').value = btn.dataset.userId;
+            document.getElementById('deleteUserName').textContent = btn.dataset.userName;
+        });
+    </script>
+}

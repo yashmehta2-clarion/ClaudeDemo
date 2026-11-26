@@ -1,0 +1,9 @@
+<script src="~/lib/jquery-validation/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<script>
+    // Map jQuery validation onto Bootstrap 5's is-invalid styling.
+    $.validator.setDefaults({
+        highlight: el => $(el).addClass('is-invalid').removeClass('is-valid'),
+        unhighlight: el => $(el).removeClass('is-invalid')
+    });
+</script>

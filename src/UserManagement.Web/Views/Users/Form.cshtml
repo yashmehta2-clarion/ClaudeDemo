@@ -1,0 +1,66 @@
+@model UserFormViewModel
+@{
+    ViewData["Title"] = Model.IsEdit ? "Edit User" : "Create User";
+}
+<div class="row">
+    <div class="col-xl-8">
+        <div class="card card-primary card-outline mb-4">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="bi @(Model.IsEdit ? "bi-pencil-square" : "bi-person-plus-fill") me-1"></i>
+                    @(Model.IsEdit ? $"Edit {Model.FirstName} {Model.LastName}" : "New user")
+                </h3>
+            </div>
+            <form asp-action="@(Model.IsEdit ? "Edit" : "Create")" asp-route-id="@Model.Id" method="post" novalidate>
+                <div class="card-body">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2" role="alert"></div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="FirstName" class="form-label"></label> <span class="text-danger">*</span>
+                            <input asp-for="FirstName" class="form-control" />
+                            <span asp-validation-for="FirstName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="LastName" class="form-label"></label> <span class="text-danger">*</span>
+                            <input asp-for="LastName" class="form-control" />
+                            <span asp-validation-for="LastName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-8">
+                            <label asp-for="Email" class="form-label"></label> <span class="text-danger">*</span>
+                            <input asp-for="Email" class="form-control" autocomplete="off" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="Role" class="form-label"></label> <span class="text-danger">*</span>
+                            <select asp-for="Role" asp-items="ViewBag.Roles" class="form-select">
+                                <option value="">-- Select role --</option>
+                            </select>
+                            <span asp-validation-for="Role" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Password" class="form-label"></label>
+                            @if (!Model.IsEdit) { <span class="text-danger">*</span> }
+                            <input asp-for="Password" class="form-control" autocomplete="new-password" data-val-required="@(Model.IsEdit ? null : "Password is required.")" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                            <div class="form-text">
+                                @(Model.IsEdit ? "Leave blank to keep the current password. " : "")At least 8 characters, with upper-case, lower-case and a digit.
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="ConfirmPassword" class="form-label"></label>
+                            <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> @(Model.IsEdit ? "Save changes" : "Create user")</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary float-end">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

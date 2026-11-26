@@ -1,0 +1,34 @@
+@{
+    var boxClass = ViewData["BoxClass"] as string ?? "login";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] | User Management</title>
+    <link rel="icon" type="image/png" href="~/favicon.png" />
+    <link rel="stylesheet" href="~/lib/bootstrap-icons/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/adminlte/css/adminlte.min.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="@(boxClass)-page bg-body-secondary">
+<div class="@(boxClass)-box">
+    <div class="card card-outline card-primary">
+        <div class="card-header text-center">
+            <a asp-controller="Account" asp-action="Login" class="link-dark text-decoration-none">
+                <h1 class="mb-0"><b>User</b>Management</h1>
+            </a>
+        </div>
+        <div class="card-body @(boxClass)-card-body">
+            <partial name="_Alerts" />
+            @RenderBody()
+        </div>
+    </div>
+</div>
+<script src="~/lib/jquery/jquery.min.js"></script>
+<script src="~/lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+<script src="~/lib/adminlte/js/adminlte.min.js"></script>
+@await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

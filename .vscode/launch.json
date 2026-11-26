@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "UserManagement.Web (Chrome)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      "program": "${workspaceFolder}/src/UserManagement.Web/bin/Debug/net10.0/UserManagement.Web.dll",
+      "cwd": "${workspaceFolder}/src/UserManagement.Web",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "https://localhost:7180;http://localhost:5180"
+      },
+      "serverReadyAction": {
+        "action": "debugWithChrome",
+        "pattern": "\\bNow listening on:\\s+(https?://\\S+)",
+        "uriFormat": "%s/Account/Login",
+        "webRoot": "${workspaceFolder}/src/UserManagement.Web/wwwroot"
+      }
+    }
+  ]
+}
