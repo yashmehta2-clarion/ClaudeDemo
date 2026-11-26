@@ -159,4 +159,51 @@ public partial class AppFlowTests : IClassFixture<TestAppFactory>
         await PostFormAsync(c, "/Users", "/Users/Delete", new() { ["id"] = id });
         Assert.Contains("admin@example.com", await c.GetStringAsync("/Users?role=Admin"));
     }
+
+    [Fact]
+    public async Task Register_rejects_email_without_domain_suffix()
+    {
+        var c = NewClient();
+        var res = await RegisterAsync(c, "Nodot", "Domain", "nodot.register@aaa", "User");
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode); // form re-displayed, not redirected
+        Assert.Contains("Enter a valid email address.", await res.Content.ReadAsStringAsync());
+
+        // No account was created, so it cannot sign in.
+        var login = await LoginAsync(c, "nodot.register@aaa", "Passw0rd!");
+        Assert.NotEqual(HttpStatusCode.Redirect, login.StatusCode);
+    }
+
+    [Fact]
+    public async Task Admin_create_and_edit_reject_email_without_domain_suffix()
+    {
+        var c = NewClient();
+        await LoginAsync(c, "admin@example.com", "Admin@12345");
+
+        var create = await PostFormAsync(c, "/Users/Create", "/Users/Create", new()
+        {
+            ["FirstName"] = "Nodot", ["LastName"] = "Create", ["Email"] = "nodot.create@aaa", ["Role"] = "User",
+            ["Password"] = "Passw0rd!", ["ConfirmPassword"] = "Passw0rd!"
+        });
+        Assert.Equal(HttpStatusCode.OK, create.StatusCode);
+        Assert.Contains("Enter a valid email address.", await create.Content.ReadAsStringAsync());
+        Assert.DoesNotContain("nodot.create@aaa", await c.GetStringAsync("/Users?search=nodot&pageSize=50"));
+
+        // Create a valid user, then try to change its email to one without a domain suffix.
+        await PostFormAsync(c, "/Users/Create", "/Users/Create", new()
+        {
+            ["FirstName"] = "Valid", ["LastName"] = "Edittarget", ["Email"] = "edit.target@example.com", ["Role"] = "User",
+            ["Password"] = "Passw0rd!", ["ConfirmPassword"] = "Passw0rd!"
+        });
+        var list = await c.GetStringAsync("/Users?search=edit.target");
+        var id = Regex.Match(list, "/Users/Edit/(\\d+)").Groups[1].Value;
+        Assert.False(string.IsNullOrEmpty(id));
+
+        var edit = await PostFormAsync(c, $"/Users/Edit/{id}", $"/Users/Edit/{id}", new()
+        {
+            ["FirstName"] = "Valid", ["LastName"] = "Edittarget", ["Email"] = "edit.target@aaa", ["Role"] = "User"
+        });
+        Assert.Equal(HttpStatusCode.OK, edit.StatusCode);
+        Assert.Contains("Enter a valid email address.", await edit.Content.ReadAsStringAsync());
+        Assert.Contains("mailto:edit.target@example.com", await c.GetStringAsync("/Users?search=edit.target"));
+    }
 }

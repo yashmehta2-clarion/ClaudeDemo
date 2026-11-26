@@ -18,7 +18,8 @@ public class RegisterViewModel
     public string LastName { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Email is required.")]
-    [EmailAddress(ErrorMessage = "Enter a valid email address.")]
+    [RegularExpression(ValidationPatterns.Email, ErrorMessage = ValidationPatterns.EmailMessage)]
+    [DataType(DataType.EmailAddress)]
     [StringLength(256)]
     [Display(Name = "Email")]
     public string Email { get; set; } = string.Empty;
