@@ -115,4 +115,31 @@
     </div>
 </div>
 
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+@section Styles {
+    @if (Model.IsEdit)
+    {
+        <link rel="stylesheet" href="~/lib/tom-select/tom-select.bootstrap5.min.css" />
+    }
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    @if (Model.IsEdit)
+    {
+        <script src="~/lib/tom-select/tom-select.complete.min.js"></script>
+        <script>
+            // State and Country: type to filter the options. The underlying <select> is kept, so the
+            // form posts exactly the same values and the server-side checks still apply.
+            const searchable = (selector, placeholder) => new TomSelect(selector, {
+                maxOptions: null,
+                placeholder: placeholder,
+                plugins: ['clear_button'],
+                openOnFocus: true,
+                // Default is a 300 ms debounce, during which Enter would pick a stale highlighted option. The lists are tiny, so refresh immediately.
+                refreshThrottle: 0
+            });
+            searchable('#State', 'Search state...');
+            searchable('#Country', 'Search country...');
+        </script>
+    }
+}

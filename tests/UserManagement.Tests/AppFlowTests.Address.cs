@@ -163,4 +163,27 @@ public partial class AppFlowTests
         var edit = await c.GetStringAsync($"/Users/Edit/{id}");
         Assert.DoesNotContain("data-val-required=\"\"", edit);
     }
+
+    [Fact]
+    public async Task State_and_country_are_searchable_on_edit_but_assets_are_not_loaded_on_create()
+    {
+        var (c, id) = await AdminWithNewUserAsync("addr.search@example.com");
+
+        var edit = await c.GetStringAsync($"/Users/Edit/{id}");
+        Assert.Contains("/lib/tom-select/tom-select.complete.min.js", edit);
+        Assert.Contains("/lib/tom-select/tom-select.bootstrap5.min.css", edit);
+        Assert.Contains("searchable('#State'", edit);
+        Assert.Contains("searchable('#Country'", edit);
+        Assert.Contains("refreshThrottle: 0", edit); // no 300 ms debounce: Enter must act on the filtered list, not a stale one
+
+        // The plain <select> stays underneath, so the form still posts the same values.
+        Assert.Contains("<select class=\"form-select\" id=\"State\" name=\"State\">", edit);
+
+        var create = await c.GetStringAsync("/Users/Create");
+        Assert.DoesNotContain("tom-select", create);
+
+        // The vendored files are actually served.
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/lib/tom-select/tom-select.complete.min.js")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await c.GetAsync("/lib/tom-select/tom-select.bootstrap5.min.css")).StatusCode);
+    }
 }
