@@ -47,3 +47,44 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261127074352_AddUserAddress'
+)
+BEGIN
+    CREATE TABLE [UserAddresses] (
+        [Id] int NOT NULL IDENTITY,
+        [UserId] int NOT NULL,
+        [Address1] nvarchar(200) NOT NULL,
+        [Address2] nvarchar(200) NULL,
+        [City] nvarchar(100) NOT NULL,
+        [State] nvarchar(60) NOT NULL,
+        [Country] nvarchar(60) NOT NULL,
+        [Pincode] nvarchar(10) NOT NULL,
+        [UpdatedAtUtc] datetime2 NOT NULL,
+        CONSTRAINT [PK_UserAddresses] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_UserAddresses_Users_UserId] FOREIGN KEY ([UserId]) REFERENCES [Users] ([Id]) ON DELETE CASCADE
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261127074352_AddUserAddress'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_UserAddresses_UserId] ON [UserAddresses] ([UserId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261127074352_AddUserAddress'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261127074352_AddUserAddress', N'10.0.15');
+END;
+
+COMMIT;
+GO
+

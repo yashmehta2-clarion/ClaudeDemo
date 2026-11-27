@@ -25,5 +25,7 @@ public class AppUser
 
     public DateTime? UpdatedAtUtc { get; set; }
 
+    public UserAddress? Address { get; set; }
+
     public string FullName => $"{FirstName} {LastName}";
 }

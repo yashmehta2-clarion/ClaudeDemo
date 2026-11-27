@@ -3,16 +3,21 @@ using UserManagement.Web.ViewModels;
 
 namespace UserManagement.Web.Services;
 
+/// <summary>Address values for a user. Passing null to <see cref="IUserService.UpdateAsync"/> removes the address.</summary>
+public record AddressInput(string Address1, string? Address2, string City, string State, string Country, string Pincode);
+
 public interface IUserService
 {
     Task<AppUser?> FindByIdAsync(int id, CancellationToken ct = default);
+    /// <summary>Like <see cref="FindByIdAsync"/> but also loads the user's address (if any).</summary>
+    Task<AppUser?> FindByIdWithAddressAsync(int id, CancellationToken ct = default);
     Task<bool> EmailExistsAsync(string email, int? excludeUserId = null, CancellationToken ct = default);
 
     /// <summary>Returns the user when the email/password pair is valid; otherwise null.</summary>
     Task<AppUser?> ValidateCredentialsAsync(string email, string password, CancellationToken ct = default);
 
     Task<AppUser> CreateAsync(string firstName, string lastName, string email, UserRole role, string password, CancellationToken ct = default);
-    Task<AppUser?> UpdateAsync(int id, string firstName, string lastName, string email, UserRole role, string? newPassword, CancellationToken ct = default);
+    Task<AppUser?> UpdateAsync(int id, string firstName, string lastName, string email, UserRole role, string? newPassword, AddressInput? address = null, CancellationToken ct = default);
     Task<bool> DeleteAsync(int id, CancellationToken ct = default);
 
     /// <summary>Filtered, sorted and paged list. When <paramref name="visibleRole"/> is set, only users of that role are returned.</summary>

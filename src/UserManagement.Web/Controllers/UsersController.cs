@@ -75,7 +75,7 @@ public class UsersController(IUserService users) : Controller
     [HttpGet, Authorize(Roles = AdminRole)]
     public async Task<IActionResult> Edit(int id)
     {
-        var user = await users.FindByIdAsync(id, HttpContext.RequestAborted);
+        var user = await users.FindByIdWithAddressAsync(id, HttpContext.RequestAborted);
         if (user is null) return NotFound();
 
         PopulateRoles();
@@ -85,7 +85,13 @@ public class UsersController(IUserService users) : Controller
             FirstName = user.FirstName,
             LastName = user.LastName,
             Email = user.Email,
-            Role = user.Role
+            Role = user.Role,
+            Address1 = user.Address?.Address1,
+            Address2 = user.Address?.Address2,
+            City = user.Address?.City,
+            State = user.Address?.State,
+            Country = user.Address?.Country,
+            Pincode = user.Address?.Pincode
         });
     }
 
@@ -109,7 +115,11 @@ public class UsersController(IUserService users) : Controller
             return View("Form", model);
         }
 
-        var user = await users.UpdateAsync(id, model.FirstName, model.LastName, model.Email, model.Role!.Value, model.Password, HttpContext.RequestAborted);
+        var address = model.HasAddress
+            ? new AddressInput(model.Address1!, model.Address2, model.City!, model.State!, model.Country!, model.Pincode!)
+            : null;
+
+        var user = await users.UpdateAsync(id, model.FirstName, model.LastName, model.Email, model.Role!.Value, model.Password, address, HttpContext.RequestAborted);
         TempData["Success"] = $"User '{user!.FullName}' was updated.";
         return RedirectToAction(nameof(Index));
     }

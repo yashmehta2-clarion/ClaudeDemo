@@ -17,6 +17,7 @@ A user management web app built with **ASP.NET Core MVC on .NET 10 (LTS)**, **En
 | **Registration** (`/Account/Register`) | First name, last name, email, role (Admin/User), password and confirmation. Validation runs in the browser and again on the server: required fields, name characters, email format, duplicate email, password strength (8+ characters with upper-case, lower-case and a digit), and password match. |
 | **Login** (`/Account/Login`) | The username is the registered email. Both fields are validated. A successful login redirects to the **user list**. Passwords are hashed with ASP.NET Core's `PasswordHasher` (PBKDF2). |
 | **User list** (`/Users`) | Normal users see **only users with the User role**. Admins see everyone. The grid has search, a role filter (admin only), sortable columns (click a header to toggle asc/desc), and paging with a page-size picker. |
+| **Address** (Edit User page) | Optional postal address per user: Address 1, Address 2, City, State (Indian states and union territories dropdown), Country (India / Russia dropdown) and a 6-digit Pincode. Leave everything blank for no address; if any field is filled, all but Address 2 are required. |
 | **Admin management** | Admins can create, edit and delete users. Delete asks for confirmation in a modal. Admins can't delete their own account or remove their own Admin role, so they can't lock themselves out. Non-admins get *Access denied* on these pages. |
 
 On every request the auth cookie is checked against the database. A deleted user is signed out, and a user whose role changes gets the new permissions on their next request.
@@ -28,7 +29,7 @@ UserManagement.sln
 src/UserManagement.Web/          ASP.NET Core MVC app
   Controllers/                   AccountController, UsersController, HomeController
   Data/                          AppDbContext, DbInitializer (migrate + seed admin), Migrations/
-  Models/ ViewModels/            Entity + view models with validation attributes
+  Models/ ViewModels/            Entities (AppUser, UserAddress), dropdown options, view models with validation attributes
   Services/                      UserService (CRUD, filter/sort/page), AuthCookieHelper
   Views/                         AdminLTE layout (_Layout), login/register layout (_AuthLayout)
   wwwroot/lib/                   AdminLTE, Bootstrap, Bootstrap Icons, jQuery validation (vendored, no CDN)

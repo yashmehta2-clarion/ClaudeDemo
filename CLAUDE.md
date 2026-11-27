@@ -30,6 +30,8 @@ dotnet ef migrations add <Name> -o Data/Migrations --project src/UserManagement.
 
 **Single entity:** `AppUser` (table `Users`), with a unique index on `Email`. `Role` is the `UserRole` enum, stored as a string. `Email` doubles as the login username and is always lower-cased through `UserService.NormalizeEmail`. Use that helper for any new email lookup or write.
 
+**Address (optional, one per user):** `UserAddress` (table `UserAddresses`) is one-to-one with `AppUser` and cascade-deleted. It is shown and saved **only on the admin Edit page**; `UserFormViewModel` carries the address fields and `HasAddress` decides whether an address exists. Blank address fields mean "no address" (`UserService.UpdateAsync` removes it when `address` is null); if any field is filled, `Validate()` requires the rest. Dropdown values live in `Models/AddressOptions.cs` (36 Indian states/UTs, countries India and Russia) and are re-checked server-side. `IValidatableObject.Validate` only runs once attribute validation passes, so some errors appear in two rounds.
+
 **Configuration:**
 - The connection string is `ConnectionStrings:DefaultConnection`. It can be overridden via user-secrets or the environment variable `ConnectionStrings__DefaultConnection`.
 - `DbInitializer.InitializeAsync` runs at startup. It applies migrations unless `Database:ApplyMigrationsOnStartup` is false, and seeds an admin from `SeedAdmin:*` only if no admin exists.
@@ -44,6 +46,7 @@ dotnet ef migrations add <Name> -o Data/Migrations --project src/UserManagement.
 - They are written without `\p{..}` classes, lookbehinds, or other .NET-only syntax so the same pattern works in JavaScript. Keep any new pattern JS-compatible.
 - `[EmailAddress]` is deliberately not used for registration or admin create/edit, because it accepts `abc@aaa`. `LoginViewModel` keeps the lenient `[EmailAddress]` on purpose, so older accounts saved with a weak email can still sign in.
 - Required-on-create but optional-on-edit passwords are handled in `UserFormViewModel` (`IValidatableObject`).
+- In `Users/Form.cshtml`, the Password input is rendered in two branches on purpose: a null `data-val-required` still renders as an empty attribute, which makes the browser demand a password on Edit.
 
 **Front-end assets are vendored** in `src/UserManagement.Web/wwwroot/lib/` (AdminLTE, Bootstrap, Bootstrap Icons, jQuery and validation). There is no npm or CDN step. To upgrade, replace the files there.
 
