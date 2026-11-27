@@ -13,6 +13,9 @@ public class UserService(AppDbContext db, IPasswordHasher<AppUser> hasher) : IUs
     public Task<AppUser?> FindByIdAsync(int id, CancellationToken ct = default) =>
         db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id, ct);
 
+    public Task<AppUser?> FindByIdWithAddressAsync(int id, CancellationToken ct = default) =>
+        db.Users.AsNoTracking().Include(u => u.Address).FirstOrDefaultAsync(u => u.Id == id, ct);
+
     public Task<bool> EmailExistsAsync(string email, int? excludeUserId = null, CancellationToken ct = default)
     {
         var normalized = NormalizeEmail(email);
@@ -57,9 +60,9 @@ public class UserService(AppDbContext db, IPasswordHasher<AppUser> hasher) : IUs
         return user;
     }
 
-    public async Task<AppUser?> UpdateAsync(int id, string firstName, string lastName, string email, UserRole role, string? newPassword, CancellationToken ct = default)
+    public async Task<AppUser?> UpdateAsync(int id, string firstName, string lastName, string email, UserRole role, string? newPassword, AddressInput? address = null, CancellationToken ct = default)
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == id, ct);
+        var user = await db.Users.Include(u => u.Address).FirstOrDefaultAsync(u => u.Id == id, ct);
         if (user is null) return null;
 
         user.FirstName = firstName.Trim();
@@ -70,13 +73,31 @@ public class UserService(AppDbContext db, IPasswordHasher<AppUser> hasher) : IUs
             user.PasswordHash = hasher.HashPassword(user, newPassword);
         user.UpdatedAtUtc = DateTime.UtcNow;
 
+        if (address is null)
+        {
+            if (user.Address is not null)
+                db.Remove(user.Address);
+        }
+        else
+        {
+            user.Address ??= new UserAddress();
+            user.Address.Address1 = address.Address1.Trim();
+            user.Address.Address2 = string.IsNullOrWhiteSpace(address.Address2) ? null : address.Address2.Trim();
+            user.Address.City = address.City.Trim();
+            user.Address.State = address.State;
+            user.Address.Country = address.Country;
+            user.Address.Pincode = address.Pincode.Trim();
+            user.Address.UpdatedAtUtc = DateTime.UtcNow;
+        }
+
         await db.SaveChangesAsync(ct);
         return user;
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken ct = default)
     {
-        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == id, ct);
+        // Include the address so it is removed with the user even on providers that don't cascade.
+        var user = await db.Users.Include(u => u.Address).FirstOrDefaultAsync(u => u.Id == id, ct);
         if (user is null) return false;
         db.Users.Remove(user);
         await db.SaveChangesAsync(ct);

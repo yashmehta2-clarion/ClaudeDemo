@@ -19,6 +19,10 @@ internal static class ValidationPatterns
         @"^(?!.*\.\.)[A-Za-z0-9._%+\-]+@[A-Za-z0-9](?:[A-Za-z0-9\-]*[A-Za-z0-9])?(?:\.[A-Za-z0-9](?:[A-Za-z0-9\-]*[A-Za-z0-9])?)*\.[A-Za-z]{2,}$";
     public const string EmailMessage = "Enter a valid email address.";
 
+    /// <summary>6-digit postal code that does not start with 0 (valid for both India PIN codes and Russian postal codes).</summary>
+    public const string Pincode = @"^[1-9][0-9]{5}$";
+    public const string PincodeMessage = "Pincode must be 6 digits and cannot start with 0.";
+
     /// <summary>At least one upper-case letter, one lower-case letter and one digit.</summary>
     public const string Password = @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$";
     public const string PasswordMessage = "Password must contain at least one upper-case letter, one lower-case letter and one digit.";

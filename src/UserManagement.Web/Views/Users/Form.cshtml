@@ -1,4 +1,5 @@
 @model UserFormViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
 @{
     ViewData["Title"] = Model.IsEdit ? "Edit User" : "Create User";
 }
@@ -41,7 +42,15 @@
                         <div class="col-md-6">
                             <label asp-for="Password" class="form-label"></label>
                             @if (!Model.IsEdit) { <span class="text-danger">*</span> }
-                            <input asp-for="Password" class="form-control" autocomplete="new-password" data-val-required="@(Model.IsEdit ? null : "Password is required.")" />
+                            @* On Edit the password is optional. A null attribute value would still render data-val-required="" and make the browser demand a password. *@
+                            @if (Model.IsEdit)
+                            {
+                                <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                            }
+                            else
+                            {
+                                <input asp-for="Password" class="form-control" autocomplete="new-password" data-val-required="Password is required." />
+                            }
                             <span asp-validation-for="Password" class="text-danger small"></span>
                             <div class="form-text">
                                 @(Model.IsEdit ? "Leave blank to keep the current password. " : "")At least 8 characters, with upper-case, lower-case and a digit.
@@ -53,6 +62,49 @@
                             <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                         </div>
                     </div>
+
+                    @if (Model.IsEdit)
+                    {
+                        <hr class="my-4" />
+                        <h5 class="mb-1"><i class="bi bi-geo-alt-fill me-1"></i> Address</h5>
+                        <p class="text-secondary small">Optional. Leave all address fields blank for no address; if you fill any, Address 1, City, State, Country and Pincode are required.</p>
+                        <div class="row g-3" id="addressSection">
+                            <div class="col-md-6">
+                                <label asp-for="Address1" class="form-label"></label>
+                                <input asp-for="Address1" class="form-control" autocomplete="address-line1" />
+                                <span asp-validation-for="Address1" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="Address2" class="form-label"></label>
+                                <input asp-for="Address2" class="form-control" autocomplete="address-line2" />
+                                <span asp-validation-for="Address2" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="City" class="form-label"></label>
+                                <input asp-for="City" class="form-control" autocomplete="address-level2" />
+                                <span asp-validation-for="City" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="State" class="form-label"></label>
+                                <select asp-for="State" asp-items="@(new SelectList(AddressOptions.IndianStates))" class="form-select">
+                                    <option value="">-- Select state --</option>
+                                </select>
+                                <span asp-validation-for="State" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Country" class="form-label"></label>
+                                <select asp-for="Country" asp-items="@(new SelectList(AddressOptions.Countries))" class="form-select">
+                                    <option value="">-- Select country --</option>
+                                </select>
+                                <span asp-validation-for="Country" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <label asp-for="Pincode" class="form-label"></label>
+                                <input asp-for="Pincode" class="form-control" inputmode="numeric" maxlength="6" autocomplete="postal-code" />
+                                <span asp-validation-for="Pincode" class="text-danger small"></span>
+                            </div>
+                        </div>
+                    }
                 </div>
                 <div class="card-footer">
                     <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> @(Model.IsEdit ? "Save changes" : "Create user")</button>
@@ -63,4 +115,31 @@
     </div>
 </div>
 
-@section Scripts { <partial name="_ValidationScriptsPartial" /> }
+@section Styles {
+    @if (Model.IsEdit)
+    {
+        <link rel="stylesheet" href="~/lib/tom-select/tom-select.bootstrap5.min.css" />
+    }
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    @if (Model.IsEdit)
+    {
+        <script src="~/lib/tom-select/tom-select.complete.min.js"></script>
+        <script>
+            // State and Country: type to filter the options. The underlying <select> is kept, so the
+            // form posts exactly the same values and the server-side checks still apply.
+            const searchable = (selector, placeholder) => new TomSelect(selector, {
+                maxOptions: null,
+                placeholder: placeholder,
+                plugins: ['clear_button'],
+                openOnFocus: true,
+                // Default is a 300 ms debounce, during which Enter would pick a stale highlighted option. The lists are tiny, so refresh immediately.
+                refreshThrottle: 0
+            });
+            searchable('#State', 'Search state...');
+            searchable('#Country', 'Search country...');
+        </script>
+    }
+}

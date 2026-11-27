@@ -3,3 +3,5 @@
 .sort-link:hover { color: var(--bs-primary); }
 .login-box, .register-box { width: 100%; max-width: 460px; padding: 0 1rem; }
 .input-group > .form-floating + .input-group-text { border-left: 0; }
+/* Tom Select (searchable State/Country dropdowns): keep the clear button from covering the caret */
+.ts-wrapper.form-select { padding: 0; }
