@@ -49,6 +49,7 @@ dotnet ef migrations add <Name> -o Data/Migrations --project src/UserManagement.
 
 **Views:** `_Layout` is the AdminLTE shell. `_AuthLayout` is the login/register card and takes `ViewData["BoxClass"]` (`login` or `register`). `Users/Index` renders the grid; filters, sorting and paging are plain GET query-string parameters bound into `UserListQuery`. `Users/Form` serves both Create and Edit.
 
+**Dropdowns** are always have `<option value="">-- Select --</option>` as the first option. The `UserRole` enum is rendered with `Enum.GetValues<UserRole>()` and search with textboxes without case-sensitivity.
 ## Testing
 
 `tests/UserManagement.Tests` has two kinds of tests:
@@ -65,3 +66,6 @@ Things to know when writing tests:
 
 - `Program` is declared `public partial class Program;` at the bottom of `Program.cs` so the test factory can reference it. Don't remove it.
 - Seeded credentials in `appsettings.json` are demo values and must be changed for any real deployment.
+
+##GitHub
+- Any promt with keywords like "Feature", it should be a new branch from `FirstSample` and branch name as "FeatureName" and after raise a PR into `FirstSample`. The PR title should start with the feature name, e.g. `Feature: Add password reset`.
